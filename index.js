@@ -6,18 +6,18 @@ import puppeteer from 'puppeteer'
 const output_folder = 'game_data'
 
 // TODO find the reg season start ids for other seasons
-const seasonStartIds = {
+const SEASON_START_IDS = {
     50: 9654,
     51: 10067,
 }
 
 // For setting when to start/end
-const startSeason = 50
-const endSeason = 50
+const START_SEASON = 50
+const END_SEASON = 50
 
-// Mostly for debugging or getting single seasons
-const runSingle = false
-const singleGameId = 9713
+// Mostly for debugging or getting single games
+const RUN_SINGLE = true
+const SINGLE_RUN_GAME_ID = 9713
 
 class Main {
     static async Run() {
@@ -26,22 +26,12 @@ class Main {
         console.log('✨ ISFL PBP Scraping Starting ✨')
         let fullOutput = []
 
-        for (let i = startSeason; i <= endSeason; i++) {
+        for (let i = START_SEASON; i <= END_SEASON; i++) {
             const seasonOutput = await App.Start(i)
             fullOutput.push(seasonOutput)
         }
+
 				console.log('🎉 ISFL PBP Scraping Complete 🎉')
-        /*
-        fs.writeFile(
-            `./${output_folder}/all_scoring.json`,
-            JSON.stringify(fullOutput),
-            'utf8',
-            function (err) {
-                if (err) throw err
-                console.log(`JSON output complete: Full Output`)
-            }
-        )
-				*/
     }
 
     async SingleGame(_season, _gameId) {
@@ -142,18 +132,18 @@ class Main {
 
 				const seasonGames = []
 
-        if (runSingle) {
-            const singleGameData = await this.SingleGame(_season, singleGameId)
+        if (RUN_SINGLE) {
+            const singleGameData = await this.SingleGame(_season, SINGLE_RUN_GAME_ID)
 						const gameData = this.SetGameData(_season, 0, 0, singleGameData);
 
             fs.writeFile(
-                `./${output_folder}_single/s${_season}_g${singleGameId}.json`,
+                `./${output_folder}_single/s${_season}_g${SINGLE_RUN_GAME_ID}.json`,
                 JSON.stringify(gameData),
                 'utf8',
                 function (err) {
                     if (err) throw err
                     console.log(
-                        `JSON output complete: S${_season} G${singleGameId}`
+                        `JSON output complete: S${_season} G${SINGLE_RUN_GAME_ID}`
                     )
                 }
             )
@@ -164,7 +154,7 @@ class Main {
 
             for (let x = 0; x < weeks; x++) {
                 for (let y = 0; y < gamesPerWeek; y++) {
-										const gameId = seasonStartIds[_season] + (x * gamesPerWeek) + y
+										const gameId = SEASON_START_IDS[_season] + (x * gamesPerWeek) + y
                     const singleGameData = await this.SingleGame(
                         _season,
                         gameId
