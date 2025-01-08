@@ -156,8 +156,44 @@ function GetPBP(_season, _gameId) {
 	return `https://index.sim-football.com/ISFLS${_season}/Logs/PBP.html?id=${_gameId}`
 }
 
+function ParseTeamFromLogoId(_season, _id) {
+	if (!_id || _id == '' || _id == -1)
+		return ''
+
+	switch (_id)  {
+		case 1:
+			return ParseTeamNameModern("Hawks");
+		case 2:
+			return ParseTeamNameModern("Wraiths");
+		case 3:
+			return ParseTeamNameModern("Yeti");
+		case 4:
+			return ParseTeamNameModern("Outlaws");
+		case 5:
+			return ParseTeamNameModern("Otters");
+		case 6:
+			return ParseTeamNameModern("SaberCats");
+		case 7:
+			return ParseTeamNameModern("Crash");
+		case 8:
+			return ParseTeamNameModern("Secondline");
+		case 9:
+			return ParseTeamNameModern("Kaiju");
+		case 10:
+			return ParseTeamNameModern("Copperheads");
+		case 11:
+			return ParseTeamNameModern("Sailfish");
+		case 12:
+			return ParseTeamNameModern("Hahalua");
+		case 13:
+			return ParseTeamNameModern("Brood");
+		case 14:
+			return ParseTeamNameModern("Silverbacks");
+	}
+}
+
 const TEAM_ABV = ["AUS", "AZ", "BAL", "BER", "BFB", "CHI", "COL", "CTC", "HON", "LVL", "NOLA", "NYS", "OCO", "OSK", "PHI", "SAR", "SJS", "YKW"];
 
 const TEAM_ABV_MODERN = ["AUS", "AZ", "BAL", "BFB", "OSK", "COL", "CTC", "HON", "NOLA", "NYS", "OCO", "SAR", "SJS", "YKW"];
 
-export { GetGameCount, ParseWeekNumber, ParseTeamName, ParseTeamNameModern, ParseTeam, GetIndex, GetPBP, TEAM_ABV, TEAM_ABV_MODERN }
+export { GetGameCount, ParseWeekNumber, ParseTeamName, ParseTeamNameModern, ParseTeam, ParseTeamFromLogoId, GetIndex, GetPBP, TEAM_ABV, TEAM_ABV_MODERN }
