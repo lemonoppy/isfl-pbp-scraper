@@ -1,0 +1,13 @@
+{
+  "name": "isfl-pbp-scraper",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/lemonoppy/isfl-pbp-scraper.git",
+  "author": "nelson-kim <nelson_kim@trendmicro.com>",
+  "license": "MIT",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "prettier": "^3.4.2",
+    "puppeteer": "^23.11.1"
+  }
+}

@@ -1,0 +1,7 @@
+node_modules
+/.idea/.gitignore
+/.idea/index-scraper.iml
+/.idea/jsLibraryMappings.xml
+/.idea/modules.xml
+/.idea/vcs.xml
+.env
