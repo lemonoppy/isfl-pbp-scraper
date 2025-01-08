@@ -45,7 +45,10 @@ class Main {
     }
 
     async SingleGame(_season, _gameId) {
-        const browser = await puppeteer.launch()
+        const browser = await puppeteer.launch({
+					headless: true,
+					ignoreHTTPSErrors: true
+				})
 
         console.log(`Scraping: S${_season} (Game ${_gameId})`)
         const page = await browser.newPage()
