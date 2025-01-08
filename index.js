@@ -19,14 +19,6 @@ const END_SEASON = 50
 const RUN_SINGLE = true
 const SINGLE_RUN_GAME_ID = 9645
 
-const PLAY_TYPES = {
-  0: 'KICKOFF',
-  1: 'PASS',
-  2: 'RUN',
-  3: 'FG',
-  4: 'PUNT',
-}
-
 class Main {
   static async Run() {
     const App = new Main()
@@ -118,12 +110,16 @@ class Main {
   }
 
   StripTags(_string) {
-    if (_string.search('(C)') >= 0) {
-      return _string.split(' (C)').join('')
-    }
-    if (_string.search('(R)') >= 0) {
-      return _string.split(' (R)').join('')
-    }
+    if (!_string || _string == '') return _string
+
+    try {
+      if (_string.search('(C)') >= 0) {
+        return _string.split(' (C)').join('')
+      }
+      if (_string.search('(R)') >= 0) {
+        return _string.split(' (R)').join('')
+      }
+    } catch (e) {}
     return _string
   }
 
@@ -139,12 +135,17 @@ class Main {
       rusher: '',
       defender: '',
       kicker: '',
+      patKicker: '',
       outcome: '',
       patOutcome: '',
 
       kickYards: 0,
       returner: '',
       returnYards: 0,
+
+      penalty: false,
+      penaltyPlayer: '',
+      penaltyType: '',
 
       parsed: false,
     }
@@ -213,8 +214,44 @@ class Main {
       parsedPlay.parsed = true
     }
 
+    if (play.search('Penalty on') >= 0) {
+      parsedPlay.penalty = true
+      parsedPlay.penaltyPlayer = play.split('Penalty on ')[1].split(':')[0]
+      parsedPlay.penaltyType = play
+        .split('Penalty on ')[1]
+        .split(':')[1]
+        .trim()
+        .slice(0, -1)
+      parsedPlay.parsed = true
+    }
+
     if (play.search('Punt by') >= 0) {
       parsedPlay.playType = 'PUNT'
+      parsedPlay.kickYards = play.match(/(?<=of\s+).*?(?=\s+yards)/gs)
+        ? play.match(/(?<=of\s+).*?(?=\s+yards)/gs)[0]
+        : 0
+      try {
+        parsedPlay.kicker = play.match(/(?<=Punt by\s+).*?(?=\s+of)/gs)[0]
+      } catch {}
+
+      if (play.search('No return.') == -1) {
+        if (play.search('BLOCKED BY') >= 0) {
+          parsedPlay.outcome = 'BLOCKED'
+          parsedPlay.kicker = play.match(
+            /(?<=Punt by\s+).*?(?=\s+is BLOCKED)/gs,
+          )[0]
+          parsedPlay.returner = play
+            .match(/(?<=BLOCKED BY\s+).*?(?=\s+Returned)/gs)[0]
+            .slice(0, -1)
+        } else {
+          parsedPlay.returner = play.match(
+            /(?<=Returned by\s+).*?(?=\s+for)/gs,
+          )[0]
+        }
+        parsedPlay.returnYards = play.match(/(?<=for\s+).*?(?=\s+yards\.)/gs)[0]
+      }
+
+      parsedPlay.parsed = true
     }
 
     if (play.search('SACKED by ') >= 0) {
@@ -226,11 +263,29 @@ class Main {
       parsedPlay.parsed = true
     }
 
-    if (play.search('Kickoff') >= 0) {
+    if (play.search('Kickoff') >= 0 || play.search('kicks off.') >= 0) {
       parsedPlay.playType = 'KICKOFF'
+
+      if (play.search('Touchback') >= 0 || play.search('touchback') >= 0) {
+        try {
+          parsedPlay.kicker = play.match(
+            /(?<=Kickoff by\s+).*?(?=\s+deep)/gs,
+          )[0]
+        } catch {}
+
+        try {
+          parsedPlay.kicker = play.match(
+            /(?<=Kickoff by\s+).*?(?=\s+through)/gs,
+          )[0]
+        } catch {}
+
+        parsedPlay.outcome = 'TOUCHBACK'
+        parsedPlay.parsed = true
+      }
 
       if (play.search('Onsides Kickoff') >= 0) {
         parsedPlay.playType = 'KICKOFF_ONSIDE'
+        parsedPlay.outcome = ''
         parsedPlay.kicker = play
           .split('Onsides Kickoff by ')[1]
           .split(' of ')[0]
@@ -238,10 +293,34 @@ class Main {
 
       // Returned Kickoff
       if (play.search('Returned by ') >= 0) {
+        parsedPlay.outcome = 'RETURNED'
         parsedPlay.kickYards = play.split(' ')[2]
         parsedPlay.returner = play.split('Returned by ')[1].split(' for ')[0]
         parsedPlay.returnYards = play.split(' yards.')[1].split(' ').slice(-1)
         parsedPlay.parsed = true
+      }
+
+      if (!parsedPlay.kicker) {
+        try {
+          console.log(play.split('Kickoff by ')[1].split(' of ')[0])
+          parsedPlay.kicker = play.split('Kickoff by ')[1].split(' of ')[0]
+        } catch {}
+      }
+
+      if (!parsedPlay.kicker) {
+        try {
+          parsedPlay.kicker = play.split(' kicks off.')[0]
+        } catch {}
+      }
+
+      if (play.search('takes it') >= 0) {
+        if (play.search('sails into') >= 0) {
+          parsedPlay.returner = play.split(' takes it ')[0].split('!')[1]
+          parsedPlay.parsed = true
+        } else {
+          parsedPlay.returner = play.split(' takes it ')[0].split('yards.')[1]
+          parsedPlay.parsed = true
+        }
       }
     }
 
@@ -252,16 +331,16 @@ class Main {
 
     if (play.search('kick good\\)') >= 0) {
       parsedPlay.patOutcome = 'GOOD'
-      parsedPlay.kicker = play.split('(').slice(-1)[0].split(' kick ')[0]
+      parsedPlay.patKicker = play.split('(').slice(-1)[0].split(' kick ')[0]
     }
 
     if (play.search('kick NO good\\)') >= 0) {
       parsedPlay.patOutcome = 'NO_GOOD'
-      parsedPlay.kicker = play.split('(').slice(-1)[0].split(' kick ')[0]
+      parsedPlay.patKicker = play.split('(').slice(-1)[0].split(' kick ')[0]
     }
 
     if (!parsedPlay.parsed) {
-      // console.log(play)
+      console.log(parsedPlay)
     }
 
     parsedPlay.yards = Number(parsedPlay.yards)
