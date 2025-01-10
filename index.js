@@ -12,11 +12,11 @@ const SEASON_START_IDS = {
 }
 
 // For setting when to start/end
-const START_SEASON = 50
-const END_SEASON = 50
+const START_SEASON = 51
+const END_SEASON = 51
 
 // Mostly for debugging or getting single games
-const RUN_SINGLE = true
+const RUN_SINGLE = false
 const SINGLE_RUN_GAME_ID = 9645
 
 class Main {
